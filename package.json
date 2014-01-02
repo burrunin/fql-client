@@ -1,0 +1,32 @@
+{
+   "name": "fql-client"
+  ,"version": "0.0.0"
+  ,"description": "A simple and reliable FQL client"
+
+  ,"author": "Bruno Durán Rey"
+  ,"license": "MIT"
+  ,"bugs": {
+    "url": "https://github.com/brunoduran/fql-client/issues"
+  }
+
+  ,"scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+
+  ,"dependencies": {
+    "superagent": "0.15.7"
+  }
+  ,"devDependencies": {}
+
+  ,"main": "index.js"
+  ,"repository": {
+    "type": "git",
+    "url": "git://github.com/brunoduran/fql-client.git"
+  }
+
+  ,"keywords": [
+    "FQL",
+    "API",
+    "client"
+  ]
+}
