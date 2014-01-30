@@ -56,16 +56,19 @@ Client.prototype.query = function(q, fn){
 
 
 Client.prototype.user = function(q, fn){
-    console.log(select.user.length);
-    this.query('SELECT '+select.user+' FROM user WHERE username="'+q+'"', function(e, r){
+    var where = (+q?'uid':(q.length===27?'third_party_id':'username'))+'="'+q+'"';
+    // NOTE: Will fail in usernames with 27 characters but ¡oh, well, the life!
+
+    this.query('SELECT ' + select.user + ' FROM user WHERE ' + where, function(e, r){
         if(e || !r.length) return fn(e);
-        fn(r[0]);
+        fn(null, r[0]);
     });
 
     // NOTE:
-    // This is the equivalent of: SELECT * FORM user WHERE username=...
+    // This is the equivalent of: SELECT * FORM user WHERE...
     // BUT security_settings because is broken: 
     // https://developers.facebook.com/x/bugs/208059456059686/
+    // 30/01/2014
 
     // You can read about the returned values here
     // https://developers.facebook.com/docs/reference/fql/user/
