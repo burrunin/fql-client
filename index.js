@@ -1,5 +1,7 @@
-var  agent = require('superagent');
-
+var  agent   = require('superagent')
+    ,select  = require('./default/select');
+//TODO: Choose better names
+//TODO: Make queries configurable
 
 module.exports = Client = function(options) {
     if(!(this instanceof Client)){
@@ -9,30 +11,64 @@ module.exports = Client = function(options) {
     this.options = options?(typeof options === 'string'?{ "token": options }:options):{};
 };
 
-Client.prototype.query = function(q, fn){
-    var o = { "q": typeof q === 'string'? q : JSON.stringify(q) };
-    // We store the FQL query in the querystring
+Client.prototype._getJson = function(url, qs, fn){
+    if(!fn){
+        fn = qs;
+        qs = {};
+    };
 
-
-    if(this.options.token) o.access_token = this.options.token;
+    if(this.options.token) qs.access_token = this.options.token;
     // We store the facebook token into the querystring
 
     agent
-        .get('https://graph.facebook.com/fql')
-        .query(o)
+        .get(url)
+        .query(qs)
         .end(function(e, r){
             if(e) return fn(e);
 
-            var b = JSON.parse(r.text);
+            try{
+                var j = JSON.parse(r.text);
+            }catch(e){
+                return fn(e);
+            };
 
-            if(b.error) return fn(new Error('(#'+b.error.code+') '+b.error.type+': '+b.error.message));
-
-            var j = {}; typeof q !== 'string'?b.data.forEach(function(v){ j[v.name] = v.fql_result_set; }):j = b.data;
-            
             fn(null, j);
         });
 
-        //TODO: Remove Superagent
+    //TODO: Remove Superagent
+};
+
+Client.prototype.query = function(q, fn){
+    var qs = { "q": typeof q === 'string'? q : JSON.stringify(q) };
+    // We store the FQL query in the querystring
+
+    // We get the response to the FQL query and standarize the format
+    this._getJson('https://graph.facebook.com/fql', qs, function(e, r){
+        if(e) return fn(e);
+
+        if(r.error) return fn(new Error('(#'+r.error.code+') '+r.error.type+': '+r.error.message));
+
+        var j = {}; typeof q !== 'string'?r.data.forEach(function(v){ j[v.name] = v.fql_result_set; }):j = r.data;
+
+        fn(null, j);
+    });
+};
+
+
+Client.prototype.user = function(q, fn){
+    console.log(select.user.length);
+    this.query('SELECT '+select.user+' FROM user WHERE username="'+q+'"', function(e, r){
+        if(e || !r.length) return fn(e);
+        fn(r[0]);
+    });
+
+    // NOTE:
+    // This is the equivalent of: SELECT * FORM user WHERE username=...
+    // BUT security_settings because is broken: 
+    // https://developers.facebook.com/x/bugs/208059456059686/
+
+    // You can read about the returned values here
+    // https://developers.facebook.com/docs/reference/fql/user/
 };
 
 Client.prototype.pageFeedback = function(q, o, fn){
@@ -68,18 +104,8 @@ Client.prototype.pageFeedback = function(q, o, fn){
 };
 
 
-Client.prototype.user = function(q, fn){
-    this.query('SELECT about_me, birthday_date, email, first_name, middle_name, last_name, pic_square, profile_url, sex FROM user WHERE username="'+q+'"', function(e, r){
-        if(e || !r.length) return fn(e);
-        fn(r[0]);
-    });
 
-    // More fields that could be in this query:
-    // https://developers.facebook.com/docs/reference/fql/user/
-    // Again, lots of cool stuff, age, sex, bigger pictures, location, interest, followers, friends... etc, etc...
-};
-
-Client.prototype.page = function(q, fn){
+Client.prototype._page = function(q, fn){
     return fn(new Error('Not implemented yet'));
 
     this.query('SELECT can_post, name, username, pic, pic_crop, pic_small, pic_square,type,url FROM profile WHERE username="'+q+'"', function(e, r){
@@ -92,15 +118,16 @@ Client.prototype.page = function(q, fn){
 
 
 
-Client.prototype.profile = function(q, fn){
+Client.prototype._profile = function(q, fn){
     return fn(new Error('Not implemented yet'));
     var client = this;
 
-    this.query('SELECT can_post, name, username, pic, pic_crop, pic_small, pic_square,type,url FROM profile WHERE username="'+q+'"', function(e, r){
+    this.query('SELECT id FROM profile WHERE username="'+q+'"', function(e, r){
         if(e || !r.length) return fn(e);
 
         console.log(r);
 
+        client._getJson('https://graph.facebook.com/'+r[0].id, fn);
         //client[r.type](q,fn);
         //TODO: Finish this method when user, page etc, etc... gets implemented
     });
@@ -108,3 +135,4 @@ Client.prototype.profile = function(q, fn){
 
 
 //TODO: Add Mocha tests
+//TODO: Think about to remove empty retorned fields
