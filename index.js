@@ -74,6 +74,64 @@ Client.prototype.user = function(q, fn){
     // https://developers.facebook.com/docs/reference/fql/user/
 };
 
+
+Client.prototype.event = function(q, fn){
+    var where = +q?'eid="'+q+'" OR creator='+q+'':'user="'+q+'"';
+
+    this.query('SELECT ' + select.event + ' FROM event WHERE ' + where + ' LIMIT 500', function(e, r){
+        if(e || !r.length) return fn(e);
+        fn(null, r);
+    });
+    // TODO: Iterate over query to get all events
+
+    // NOTE:
+    // This is the equivalent of: SELECT * FORM event WHERE...
+    // BUT feed_targeting and creator_cursor because seems broken
+    // 31/01/2014
+
+    // You can read about the returned values here
+    // https://developers.facebook.com/docs/reference/fql/event/
+};
+
+
+Client.prototype.photo = function(q, fn){
+    var where = +q?'aid="'+q+'" OR object_id="'+q+'" OR owner="'+q+'"':'pid="'+q+'"';
+
+    this.query('SELECT ' + select.photo + ' FROM photo WHERE ' + where + ' LIMIT 500', function(e, r){
+        if(e || !r.length) return fn(e);
+        fn(null, r);
+    });
+    // TODO: Iterate over query to get all photos
+
+
+    // NOTE:
+    // This is the equivalent of: SELECT * FORM photo WHERE...
+    // BUT feed_targeting and creator_cursor because seems broken
+    // 31/01/2014
+
+    // You can read about the returned values here
+    // https://developers.facebook.com/docs/reference/fql/photo/
+};
+
+
+
+Client.prototype._video = function(q, fn){
+    return fn(new Error('Not implemented yet'));
+    // FIXME: Can't get public videos... I'm not tagged in anyone
+
+    var where = (+q?'owner':'vid')+'="'+q+'"';
+    // TODO: Check if vid is numeric
+
+
+    this.query('SELECT ' + select.video + ' FROM video WHERE ' + where, function(e, r){
+        if(e || !r.length) return fn(e);
+        fn(null, +q?r:r[0]);
+    });
+
+    // You can read about the returned values here
+    // https://developers.facebook.com/docs/reference/fql/video/
+};
+
 Client.prototype.pageFeedback = function(q, o, fn){
     var  client   = this
         ,messages = [];
@@ -84,6 +142,7 @@ Client.prototype.pageFeedback = function(q, o, fn){
     };
 
     //TODO: Options about range of times
+    //FIXME: Clean this up
     
     // We iterate over messages until we get a empty query
     var query = function(t){
@@ -122,13 +181,11 @@ Client.prototype._page = function(q, fn){
 
 
 Client.prototype._profile = function(q, fn){
-    return fn(new Error('Not implemented yet'));
+    //return fn(new Error('Not implemented yet'));
     var client = this;
 
     this.query('SELECT id FROM profile WHERE username="'+q+'"', function(e, r){
         if(e || !r.length) return fn(e);
-
-        console.log(r);
 
         client._getJson('https://graph.facebook.com/'+r[0].id, fn);
         //client[r.type](q,fn);
