@@ -27,7 +27,7 @@ The library is current in a really early stage, use with caution. It's planned t
 
 (The MIT License)
 
-Copyright (c) 2009-2013 TJ Bruno Durán <bruno.duran.rey@gmail.com>
+Copyright (c) 2009-2014 Bruno Durán <bruno.duran.rey@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
