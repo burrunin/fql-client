@@ -18,6 +18,14 @@ client.query({
 }, console.log);
 ```
 
+It has the following shortcuts, that can be seen as query `SELECT * FROM table WHERE ...`. For use them, you must pass a indexable field. 
+
+ Method|Result|More Info  
+ :---|:---:|:---:|
+ user| JSON of the user / undefined|  [User table](https://developers.facebook.com/docs/reference/fql/user/) 
+ photo| Array with results / undefined | [Photo table](https://developers.facebook.com/docs/reference/fql/photo/) 
+ event| Array with results / undefined |  [Event table](https://developers.facebook.com/docs/reference/fql/event/)
+
 ##Roadmap
 
 The library is current in a really early stage, use with caution. It's planned to remove the superagent dependency.
@@ -27,7 +35,7 @@ The library is current in a really early stage, use with caution. It's planned t
 
 (The MIT License)
 
-Copyright (c) 2009-2014 Bruno Durán <bruno.duran.rey@gmail.com>
+Copyright (c) 2014 Bruno Durán <bruno.duran.rey@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
